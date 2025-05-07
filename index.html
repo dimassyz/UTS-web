@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Aplikasi Restoran Nusantara</title>
+    <link href="vendor/sb-admin-2/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="vendor/sb-admin-2/css/sb-admin-2.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #4e73df;
+            background-image: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #5a5c69;
+            font-family: 'Nunito', sans-serif;
+        }
+        .welcome-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+        .logo-brand {
+            font-size: 3rem;
+            color: #4e73df;
+            margin-bottom: 20px;
+        }
+        .welcome-container h1 {
+            font-weight: 700;
+            color: #3a3b45;
+            margin-bottom: 15px;
+        }
+        .welcome-container p {
+            color: #5a5c69;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .link-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .link-button {
+            display: inline-block;
+            font-weight: 400;
+            color: #fff;
+            text-align: center;
+            vertical-align: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            background-color: #4e73df;
+            border: 1px solid #4e73df;
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.35rem;
+            text-decoration: none;
+            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        .link-button:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+            color: #fff;
+        }
+        .link-button .fas {
+            margin-right: 8px;
+        }
+        .link-button.kasir-link {
+            background-color: #1cc88a;
+            border-color: #1cc88a;
+        }
+        .link-button.kasir-link:hover {
+            background-color: #17a673;
+            border-color: #169b6b;
+        }
+        @media (min-width: 576px) {
+            .link-section {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .link-button {
+                margin: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="logo-brand">
+            <i class="fas fa-utensils"></i>
+        </div>
+        <h1 class="h3">Aplikasi Restoran Nusantara</h1>
+        <p>Silahkan Pilih Login Sebagai Kasir Atau Admin</p>
+        <div class="link-section">
+            <a href="kasir/" class="link-button kasir-link">
+                <i class="fas fa-cash-register"></i>Buka Kasir
+            </a>
+            <a href="admin/login.html" class="link-button">
+                <i class="fas fa-user-shield"></i>Login Admin
+            </a>
+        </div>
+    </div>
+    <script src="vendor/sb-admin-2/vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/sb-admin-2/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

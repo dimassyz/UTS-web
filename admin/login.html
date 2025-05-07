@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Login - Restoran Nusantara</title>
+
+    <link href="../vendor/sb-admin-2/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <link href="../vendor/sb-admin-2/css/sb-admin-2.min.css" rel="stylesheet">
+
+
+    <style>
+        .alert-login-error {
+             font-size: 0.85rem;
+             padding: 0.7rem 1rem;
+             margin-bottom: 1rem;
+         }
+    </style>
+</head>
+
+<body class="bg-gradient-primary">
+
+    <div class="container">
+
+        <div class="row justify-content-center">
+
+            <div class="col-xl-6 col-lg-8 col-md-9"> 
+
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-4">Admin Restoran Nusantara</h1>
+                                    </div>
+
+                                    <form id="loginFormAdmin" class="user" onsubmit="handleAdminLogin(event)">
+
+                                        <div id="loginErrorAdmin" class="alert alert-danger alert-login-error" style="display: none;" role="alert">
+                                            Username atau password salah! (Contoh Error)
+                                        </div>
+
+                                        <div class="form-group">
+                                            <input type="text" class="form-control form-control-user"
+                                                id="usernameAdmin" name="usernameAdmin" required
+                                                placeholder="Username Admin" aria-label="Username Admin">
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" class="form-control form-control-user"
+                                                id="passwordAdmin" name="passwordAdmin" required
+                                                placeholder="Password" aria-label="Password">
+                                        </div>
+
+                                        <button type="submit" id="loginButtonAdmin" class="btn btn-primary btn-user btn-block">
+                                            Login
+                                        </button>
+
+                                        <div id="loginLoadingAdmin" class="text-center mt-3" style="display: none;">
+                                            <div class="spinner-border text-primary spinner-border-sm" role="status">
+                                                <span class="visually-hidden"></span>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <hr>
+                                    <div class="text-center">
+                                        <a class="small" href="../index.html">Kembali ke Halaman Utama</a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="../vendor/sb-admin-2/vendor/jquery/jquery.min.js"></script>
+    <script src="../vendor/sb-admin-2/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script src="../vendor/sb-admin-2/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <script src="../vendor/sb-admin-2/js/sb-admin-2.min.js"></script>
+
+    <script>
+        // /admin/login.html (JavaScript Sederhana untuk Frontend Murni)
+        function handleAdminLogin(event) {
+            event.preventDefault(); 
+
+            const usernameInput = document.getElementById('usernameAdmin');
+            const passwordInput = document.getElementById('passwordAdmin');
+            const loginErrorAdmin = document.getElementById('loginErrorAdmin');
+            const loginButtonAdmin = document.getElementById('loginButtonAdmin');
+            const loginLoadingAdmin = document.getElementById('loginLoadingAdmin');
+
+            if (loginErrorAdmin) loginErrorAdmin.style.display = 'none';
+
+            const dummyUsername = "admin";
+            const dummyPassword = "password";
+
+            if (!usernameInput.value || !passwordInput.value) {
+                if (loginErrorAdmin) {
+                    loginErrorAdmin.textContent = "Username dan password wajib diisi!";
+                    loginErrorAdmin.style.display = 'block';
+                }
+                return;
+            }
+
+            if(loginButtonAdmin) loginButtonAdmin.disabled = true;
+            if(loginButtonAdmin) loginButtonAdmin.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Loading...`;
+            if(loginLoadingAdmin) loginLoadingAdmin.style.display = 'block';
+            setTimeout(() => {
+                if (usernameInput.value === dummyUsername && passwordInput.value === dummyPassword) {
+
+                    console.log("Login admin berhasil (simulasi). Mengarahkan ke dashboard...");
+                    window.location.href = 'index.html';
+                } else {
+
+                    if (loginErrorAdmin) {
+                        loginErrorAdmin.textContent = "Username atau password salah! (Simulasi)";
+                        loginErrorAdmin.style.display = 'block';
+                    }
+                    if(loginButtonAdmin) loginButtonAdmin.disabled = false;
+                    if(loginButtonAdmin) loginButtonAdmin.innerHTML = 'Login';
+                    if(loginLoadingAdmin) loginLoadingAdmin.style.display = 'none';
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

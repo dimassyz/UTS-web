@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Kelola Menu - Admin Restoran</title>
+    <link href="../vendor/sb-admin-2/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="../vendor/sb-admin-2/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="../vendor/sb-admin-2/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="css/style-admin.css" rel="stylesheet">
+</head>
+<body id="page-top">
+    <div id="wrapper">
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-utensils"></i></div>
+                <div class="sidebar-brand-text mx-3">Resto Admin</div>
+            </a>
+            <hr class="sidebar-divider my-0">
+            <li class="nav-item">
+                <a class="nav-link" href="index.html"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a>
+            </li>
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Manajemen</div>
+            <li class="nav-item active">
+                <a class="nav-link" href="produk.html"><i class="fas fa-fw fa-hamburger"></i><span>Kelola Menu</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="kategori.html"><i class="fas fa-fw fa-tags"></i><span>Kelola Kategori</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="laporan.html"><i class="fas fa-fw fa-chart-line"></i><span>Laporan Penjualan</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="staf.html"><i class="fas fa-fw fa-users-cog"></i><span>Kelola Staf</span></a>
+            </li>
+            
+            <hr class="sidebar-divider d-none d-md-block">
+            <div class="text-center d-none d-md-inline"><button class="rounded-circle border-0" id="sidebarToggle"></button></div>
+        </ul>
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3"><i class="fa fa-bars"></i></button>
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small" id="adminNameDisplay">Admin Resto</span>
+                                <img class="img-profile rounded-circle" src="../vendor/sb-admin-2/img/undraw_profile.svg">
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal"><i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Kelola Menu</h1>
+                        <button class="btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#tambahProdukModal">
+                            <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Menu Baru
+                        </button>
+                    </div>
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Daftar Menu Restoran</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="loadingProdukAdmin" class="text-center my-4" style="display: none;">
+                                 <div class="spinner-border text-primary" role="status"><span class="sr-only">Memuat...</span></div>
+                                 <p class="mt-2">Memuat data menu...</p>
+                            </div>
+                            <div id="noProdukMessageAdmin" class="alert alert-info text-center" style="display: none;">Belum ada menu.</div>
+                            <div class="table-responsive" id="tableProdukContainerAdmin">
+                                <table class="table table-bordered" id="dataTableProduk" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">No</th>
+                                            <th class="text-center">Gambar</th>
+                                            <th>Nama Menu</th>
+                                            <th>Kategori</th>
+                                            <th class="text-center">Stok</th>
+                                            <th class="text-right">Harga</th>
+                                            <th class="text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="produkTableBodyAdmin">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto"><span>Copyright © Restoran Nusantara 2024</span></div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+
+    <div class="modal fade" id="tambahProdukModal" tabindex="-1" role="dialog" aria-labelledby="tambahProdukModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tambahProdukModalLabel">Tambah Menu Baru</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <form id="formTambahProdukAdmin">
+                    <div class="modal-body">
+                        <div id="addProdukErrorAdmin" class="alert alert-danger" style="display: none;" role="alert"></div>
+                        <div class="form-row">
+                            <div class="form-group col-md-7">
+                                <label for="addNamaProdukAdmin">Nama Menu <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="addNamaProdukAdmin" name="nama" required>
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label for="addKategoriProdukAdmin">Kategori <span class="text-danger">*</span></label>
+                                <select class="form-control" id="addKategoriProdukAdmin" name="kategori" required></select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="addHargaProdukAdmin">Harga (Rp) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="addHargaProdukAdmin" name="harga" required min="0" step="500">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="addStokProdukAdmin">Stok Awal <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="addStokProdukAdmin" name="stok" required min="0" value="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="addGambarUrlProdukAdmin">URL Gambar Menu</label>
+                            <input type="url" class="form-control" id="addGambarUrlProdukAdmin" name="gambar_url" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label for="addDeskripsiProdukAdmin">Deskripsi (Opsional)</label>
+                            <textarea class="form-control" id="addDeskripsiProdukAdmin" name="deskripsi" rows="3"></textarea>
+                        </div>
+                        <small class="text-danger">* Wajib diisi</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="submitTambahProdukAdmin">
+                             <span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true" style="display: none;"></span>
+                             Simpan Menu
+                         </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editProdukModal" tabindex="-1" role="dialog" aria-labelledby="editProdukModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProdukModalLabel">Edit Menu</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <form id="formEditProdukAdmin">
+                    <input type="hidden" id="editProdukIdAdmin" name="id">
+                    <div class="modal-body">
+                         <div id="editProdukErrorAdmin" class="alert alert-danger" style="display: none;" role="alert"></div>
+                         <div class="form-row">
+                            <div class="form-group col-md-7">
+                                <label for="editNamaProdukAdmin">Nama Menu <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editNamaProdukAdmin" name="nama" required>
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label for="editKategoriProdukAdmin">Kategori <span class="text-danger">*</span></label>
+                                <select class="form-control" id="editKategoriProdukAdmin" name="kategori" required></select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="editHargaProdukAdmin">Harga (Rp) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="editHargaProdukAdmin" name="harga" required min="0" step="500">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="editStokProdukAdmin">Stok <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="editStokProdukAdmin" name="stok" required min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editGambarUrlProdukAdmin">URL Gambar Menu</label>
+                            <input type="url" class="form-control" id="editGambarUrlProdukAdmin" name="gambar_url" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label for="editDeskripsiProdukAdmin">Deskripsi (Opsional)</label>
+                            <textarea class="form-control" id="editDeskripsiProdukAdmin" name="deskripsi" rows="3"></textarea>
+                        </div>
+                        <small class="text-danger">* Wajib diisi</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="submitEditProdukAdmin">
+                            <span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true" style="display: none;"></span>
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Yakin Ingin Keluar?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">Pilih "Logout" untuk mengakhiri sesi Anda.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Batal</button>
+                    <a class="btn btn-primary" href="login.html" id="confirmLogoutButton">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../vendor/sb-admin-2/vendor/jquery/jquery.min.js"></script>
+    <script src="../vendor/sb-admin-2/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../vendor/sb-admin-2/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="../vendor/sb-admin-2/js/sb-admin-2.min.js"></script>
+    <script src="../vendor/sb-admin-2/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="../vendor/sb-admin-2/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="js/produk-admin.js"></script>
+</body>
+</html>
