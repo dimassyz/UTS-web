@@ -1,173 +1,180 @@
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('adminNameDisplay')) {
-        document.getElementById('adminNameDisplay').textContent = 'Admin Resto';
+    let staffData = [];
+    const tableBody = document.getElementById('stafTableBodyAdmin');
+    const form = document.getElementById('formStaf');
+    const modal = $('#formModalStaf');
+    const modalLabel = document.getElementById('formModalStafLabel');
+    const errorDiv = document.getElementById('formErrorStaf');
+    const submitBtn = document.getElementById('submitBtnStaf');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    const API_URL = '../api/crud_staf.php';
+    let dataTableInstance;
+
+    async function fetchAndParse(url, options = {}) {
+        let response;
+        try {
+            response = await fetch(url, options);
+            const responseClone = response.clone();
+            try {
+                const result = await response.json();
+                return { ok: response.ok, result };
+            } catch (e) {
+                const text = await responseClone.text();
+                throw new Error(`Format respons tidak valid. Server: ${text.substring(0,150)}...`);
+            }
+        } catch (e) {
+            throw new Error(`Tidak dapat terhubung ke server: ${e.message}`);
+        }
     }
 
-    const stafTableBodyAdmin = document.getElementById('stafTableBodyAdmin');
-    const loadingStafAdmin = document.getElementById('loadingStafAdmin');
-    const tableStafContainerAdmin = document.getElementById('tableStafContainerAdmin');
-    const noStafMessageAdmin = document.getElementById('noStafMessageAdmin');
+    function setButtonLoading(isLoading) {
+        if(submitBtn && spinner) {
+            submitBtn.disabled = isLoading;
+            spinner.style.display = isLoading ? 'inline-block' : 'none';
+        }
+    }
 
-    const tambahStafModal = $('#tambahStafModal');
-    const formTambahStafAdmin = document.getElementById('formTambahStafAdmin');
-    const submitTambahStafAdminBtn = document.getElementById('submitTambahStafAdmin');
-    const tambahStafSpinner = submitTambahStafAdminBtn ? submitTambahStafAdminBtn.querySelector('.spinner-border') : null;
-    const addStafErrorAdmin = document.getElementById('addStafErrorAdmin');
-    const addNamaStafInput = document.getElementById('addNamaStafAdmin');
-    const addUsernameStafInput = document.getElementById('addUsernameStafAdmin');
-    const addPasswordStafInput = document.getElementById('addPasswordStafAdmin');
-    const addRoleStafSelect = document.getElementById('addRoleStafAdmin');
+    function showError(message) {
+        if(errorDiv) {
+            errorDiv.innerHTML = message.replace(/\n/g, '<br>');
+            errorDiv.style.display = 'block';
+        }
+    }
 
-    const editStafModal = $('#editStafModal');
-    const formEditStafAdmin = document.getElementById('formEditStafAdmin');
-    const submitEditStafAdminBtn = document.getElementById('submitEditStafAdmin');
-    const editStafSpinner = submitEditStafAdminBtn ? submitEditStafAdminBtn.querySelector('.spinner-border') : null;
-    const editStafErrorAdmin = document.getElementById('editStafErrorAdmin');
-    const editIdStafInput = document.getElementById('editIdStafAdmin');
-    const editUsernameDisplayInput = document.getElementById('editUsernameStafDisplayAdmin');
-    const editNamaStafInput = document.getElementById('editNamaStafAdmin');
-    const editPasswordStafInput = document.getElementById('editPasswordStafAdmin');
-    const editRoleStafSelect = document.getElementById('editRoleStafAdmin');
+    function hideError() {
+        if(errorDiv) errorDiv.style.display = 'none';
+    }
 
-    let STAF_DUMMY_ADMIN = [
-        { id: 1, username: 'admin', nama_lengkap: 'Admin Utama', role: 'admin' },
-        { id: 2, username: 'kasir01', nama_lengkap: 'Budi Kasir', role: 'kasir' },
-        { id: 3, username: 'kasir02', nama_lengkap: 'Citra Kasir', role: 'kasir' }
-    ];
-
-    function displayStafAdmin() {
-        if (!stafTableBodyAdmin) return;
-        stafTableBodyAdmin.innerHTML = '';
-        if (noStafMessageAdmin) noStafMessageAdmin.style.display = 'none';
-        if (!STAF_DUMMY_ADMIN || STAF_DUMMY_ADMIN.length === 0) {
-            if (noStafMessageAdmin) noStafMessageAdmin.style.display = 'block';
-            if (tableStafContainerAdmin) tableStafContainerAdmin.style.display = 'none';
+    function displayData(data) {
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+        if (!data || data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada data staf.</td></tr>';
             return;
         }
-        if (tableStafContainerAdmin) tableStafContainerAdmin.style.display = '';
-
-        STAF_DUMMY_ADMIN.forEach((staf, index) => {
-            const row = stafTableBodyAdmin.insertRow();
-            const roleText = staf.role === 'admin' ? 'Administrator' : (staf.role === 'kasir' ? 'Kasir' : staf.role);
+        data.forEach((staf, index) => {
+            const roleText = staf.role.charAt(0).toUpperCase() + staf.role.slice(1);
+            const row = tableBody.insertRow();
             row.innerHTML = `
                 <td class="text-center align-middle">${index + 1}</td>
                 <td class="align-middle">${staf.nama_lengkap}</td>
                 <td class="align-middle"><code>${staf.username}</code></td>
                 <td class="align-middle">${roleText}</td>
                 <td class="text-center align-middle">
-                    <button class="btn btn-sm btn-warning btn-edit-staf-admin" data-id="${staf.id}" title="Edit Staf"><i class="fas fa-user-edit fa-fw"></i></button>
-                    <button class="btn btn-sm btn-danger btn-hapus-staf-admin" data-id="${staf.id}" data-nama="${staf.nama_lengkap}" title="Hapus Staf"><i class="fas fa-user-times fa-fw"></i></button>
+                    <button class="btn btn-sm btn-warning btn-edit" data-id="${staf.id}" title="Edit Staf"><i class="fas fa-user-edit"></i></button> 
+                    <button class="btn btn-sm btn-danger btn-delete" data-id="${staf.id}" data-nama="${staf.nama_lengkap}" title="Hapus Staf"><i class="fas fa-user-times"></i></button>
                 </td>
             `;
         });
     }
 
-    function setButtonLoading(button, spinner, isLoading) { if (button && spinner) { button.disabled = isLoading; spinner.style.display = isLoading ? 'inline-block' : 'none'; } }
-    function showErrorModal(errorElement, message) { if(errorElement) { errorElement.innerHTML = message.replace(/\n/g, '<br>'); errorElement.style.display = 'block'; } }
-    function hideErrorModal(errorElement) { if(errorElement) errorElement.style.display = 'none'; }
-
-    if (formTambahStafAdmin) {
-        formTambahStafAdmin.addEventListener('submit', function(e) {
-            e.preventDefault(); hideErrorModal(addStafErrorAdmin);
-            setButtonLoading(submitTambahStafAdminBtn, tambahStafSpinner, true);
-
-            const nama = addNamaStafInput.value.trim();
-            const username = addUsernameStafInput.value.trim();
-            const password = addPasswordStafInput.value;
-            const role = addRoleStafSelect.value;
-
-            if (!nama || !username || !password || !role) { showErrorModal(addStafErrorAdmin, 'Semua field wajib diisi.'); setButtonLoading(submitTambahStafAdminBtn, tambahStafSpinner, false); return; }
-            if (password.length < 6) { showErrorModal(addStafErrorAdmin, 'Password minimal 6 karakter.'); setButtonLoading(submitTambahStafAdminBtn, tambahStafSpinner, false); return; }
-            if (!/^[a-zA-Z0-9_]+$/.test(username)) { showErrorModal(addStafErrorAdmin, 'Username hanya boleh berisi huruf, angka, dan underscore.'); setButtonLoading(submitTambahStafAdminBtn, tambahStafSpinner, false); return; }
-            if (STAF_DUMMY_ADMIN.some(s => s.username === username)) { showErrorModal(addStafErrorAdmin, 'Username sudah digunakan.'); setButtonLoading(submitTambahStafAdminBtn, tambahStafSpinner, false); return; }
-
-
-            setTimeout(() => {
-                const newId = Math.max(0, ...STAF_DUMMY_ADMIN.map(s => s.id)) + 1;
-                STAF_DUMMY_ADMIN.push({ id: newId, username: username, nama_lengkap: nama, role: role, password_hash: `hashed_${password}` });
-                displayStafAdmin();
-                tambahStafModal.modal('hide');
-                setButtonLoading(submitTambahStafAdminBtn, tambahStafSpinner, false);
-                alert('Staf baru berhasil ditambahkan! (Simulasi)');
-            }, 500);
-        });
-    }
-
-     if (stafTableBodyAdmin) {
-        stafTableBodyAdmin.addEventListener('click', function(e) {
-            const editButton = e.target.closest('.btn-edit-staf-admin');
-            const deleteButton = e.target.closest('.btn-hapus-staf-admin');
-
-            if (editButton) {
-                hideErrorModal(editStafErrorAdmin);
-                const stafId = parseInt(editButton.dataset.id);
-                const stafToEdit = STAF_DUMMY_ADMIN.find(s => s.id === stafId);
-                if (stafToEdit) {
-                    editIdStafInput.value = stafToEdit.id;
-                    editUsernameDisplayInput.value = stafToEdit.username;
-                    editNamaStafInput.value = stafToEdit.nama_lengkap;
-                    editPasswordStafInput.value = '';
-                    editRoleStafSelect.value = stafToEdit.role;
-                    editStafModal.modal('show');
-                }
-            }
-
-            if (deleteButton) {
-                const stafId = parseInt(deleteButton.dataset.id);
-                const stafNama = deleteButton.dataset.nama;
-                if (stafId === 1 && STAF_DUMMY_ADMIN.find(s => s.id === 1)?.username === 'admin') {
-                     alert('User admin utama tidak dapat dihapus.');
-                     return;
-                }
-                if (confirm(`Yakin ingin menghapus staf "${stafNama}"?`)) {
-                    STAF_DUMMY_ADMIN = STAF_DUMMY_ADMIN.filter(s => s.id !== stafId);
-                    displayStafAdmin();
-                    alert(`Staf "${stafNama}" berhasil dihapus! (Simulasi)`);
-                }
-            }
-        });
-    }
-
-
-    if (formEditStafAdmin) {
-        formEditStafAdmin.addEventListener('submit', function(e) {
-            e.preventDefault(); hideErrorModal(editStafErrorAdmin);
-            setButtonLoading(submitEditStafAdminBtn, editStafSpinner, true);
-
-            const id = parseInt(editIdStafInput.value);
-            const nama = editNamaStafInput.value.trim();
-            const password_baru = editPasswordStafInput.value;
-            const role = editRoleStafSelect.value;
-
-            if (!nama || !role) { showErrorModal(editStafErrorAdmin, 'Nama Lengkap dan Peran wajib diisi.'); setButtonLoading(submitEditStafAdminBtn, editStafSpinner, false); return; }
-            if (password_baru && password_baru.length < 6) { showErrorModal(editStafErrorAdmin, 'Password baru minimal 6 karakter.'); setButtonLoading(submitEditStafAdminBtn, editStafSpinner, false); return; }
-
-            setTimeout(() => {
-                const stafIndex = STAF_DUMMY_ADMIN.findIndex(s => s.id === id);
-                if (stafIndex > -1) {
-                    STAF_DUMMY_ADMIN[stafIndex].nama_lengkap = nama;
-                    STAF_DUMMY_ADMIN[stafIndex].role = role;
-                    if (password_baru) {
-                        STAF_DUMMY_ADMIN[stafIndex].password_hash = `newly_hashed_${password_baru}`;
-                    }
-                }
-                displayStafAdmin();
-                editStafModal.modal('hide');
-                setButtonLoading(submitEditStafAdminBtn, editStafSpinner, false);
-                alert('Perubahan data staf berhasil disimpan! (Simulasi)');
-            }, 500);
-        });
-    }
-
-    $('#tambahStafModal').on('hidden.bs.modal', function () { if(formTambahStafAdmin) formTambahStafAdmin.reset(); hideErrorModal(addStafErrorAdmin); });
-    $('#editStafModal').on('hidden.bs.modal', function () { if(formEditStafAdmin) formEditStafAdmin.reset(); hideErrorModal(editStafErrorAdmin); });
-
-    if(loadingStafAdmin) loadingStafAdmin.style.display = 'block';
-    setTimeout(() => {
-        displayStafAdmin();
-        if(loadingStafAdmin) loadingStafAdmin.style.display = 'none';
-        if(document.getElementById('dataTableStaf')) {
- 
+    async function loadData() {
+        if(tableBody) tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>';
+        try {
+            const { ok, result } = await fetchAndParse(API_URL);
+            if (!ok || !result.success) throw new Error(result.message || 'Gagal memuat data staf.');
+            staffData = result.data || [];
+            staffData.forEach(staf => {
+                staf.id = parseInt(staf.id, 10);
+            });
+            displayData(staffData);
+        } catch (error) {
+            if(tableBody) tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Gagal memuat: ${error.message}</td></tr>`;
         }
-    }, 200);
+    }
+
+    async function handleFormSubmit(data) {
+        setButtonLoading(true);
+        try {
+            const { ok, result } = await fetchAndParse(API_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if (!ok || !result.success) {
+                throw new Error(result.message || 'Aksi gagal di server.');
+            }
+            modal.modal('hide');
+            alert(result.message);
+            await loadData();
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            setButtonLoading(false);
+        }
+    }
+
+    document.getElementById('btnTambahStaf').addEventListener('click', () => {
+        form.reset();
+        form.querySelector('#stafId').value = '';
+        modalLabel.textContent = 'Tambah Staf Baru';
+        form.querySelector('#password').required = true;
+        form.querySelector('#passwordHelper').textContent = 'Password wajib diisi (min. 6 karakter).';
+        form.querySelector('#username').readOnly = false;
+        hideError();
+        modal.modal('show');
+    });
+
+    if (tableBody) {
+        tableBody.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.btn-edit');
+            const deleteBtn = e.target.closest('.btn-delete');
+            if (editBtn) {
+                const stafIdToFind = parseInt(editBtn.dataset.id, 10);
+                const stafToEdit = staffData.find(s => s.id === stafIdToFind);
+                if (stafToEdit) {
+                    form.reset(); 
+                    hideError();
+                    form.querySelector('#stafId').value = stafToEdit.id;
+                    form.querySelector('#nama_lengkap').value = stafToEdit.nama_lengkap;
+                    form.querySelector('#username').value = stafToEdit.username;
+                    form.querySelector('#username').readOnly = true;
+                    form.querySelector('#role').value = stafToEdit.role;
+                    const passwordInput = form.querySelector('#password');
+                    const passwordHelper = form.querySelector('#passwordHelper');
+                    passwordInput.required = false;
+                    passwordInput.value = '';
+                    if(passwordHelper) passwordHelper.textContent = 'Kosongkan jika tidak ingin mengubah password.';
+                    modalLabel.textContent = 'Edit Staf';
+                    modal.modal('show');
+                } else {
+                    alert('Data staf tidak ditemukan. Mungkin sudah dihapus. Tabel akan dimuat ulang.');
+                    loadData();
+                }
+            }
+
+            if (deleteBtn) {
+                const id = parseInt(deleteBtn.dataset.id, 10);
+                const nama = deleteBtn.dataset.nama;
+                if (confirm(`Yakin ingin menghapus staf "${nama}"?`)) {
+                    handleFormSubmit({ action: 'delete', id: id });
+                }
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = form.querySelector('#stafId').value;
+            const action = id ? 'update' : 'add';
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            data.action = action;
+            if (action === 'update') {
+                data.id = parseInt(data.id, 10);
+                if (!data.password) {
+                    delete data.password;
+                }
+            }
+            handleFormSubmit(data);
+        });
+    }
+    
+    modal.on('hidden.bs.modal', () => {
+        hideError();
+        form.reset();
+    });
+
+    loadData();
 });

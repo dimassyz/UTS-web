@@ -1,173 +1,68 @@
-// /Restoran/admin/js/laporan-admin.js
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('adminNameDisplay')) {
-        document.getElementById('adminNameDisplay').textContent = 'Admin Resto';
-    }
-    const confirmLogoutButton = document.getElementById('confirmLogoutButton');
-    if (confirmLogoutButton) {
-        confirmLogoutButton.addEventListener('click', function(event) {
-            event.preventDefault(); window.location.href = 'login.html';
-        });
-    }
+    const tableBody = document.getElementById('laporanTableBodyAdmin');
+    const loadingDiv = document.getElementById('loadingLaporan');
+    const tableContainer = document.getElementById('tableLaporanContainerAdmin');
+    const noDataMessage = document.getElementById('noLaporanMessageAdmin');
+    const filterForm = document.getElementById('filterLaporanFormAdmin');
+    const startDateInput = document.getElementById('filterTanggalMulaiAdmin');
+    const endDateInput = document.getElementById('filterTanggalAkhirAdmin');
+    const resetBtn = document.getElementById('resetFilterButtonAdmin');
+    const API_URL = '../api/get_report_data.php';
 
-    const laporanTableBodyAdmin = document.getElementById('laporanTableBodyAdmin');
-    const loadingLaporanAdmin = document.getElementById('loadingLaporanAdmin');
-    const tableLaporanContainerAdmin = document.getElementById('tableLaporanContainerAdmin');
-    const noLaporanMessageAdmin = document.getElementById('noLaporanMessageAdmin');
-    const filterLaporanFormAdmin = document.getElementById('filterLaporanFormAdmin');
-    const filterTanggalMulaiAdmin = document.getElementById('filterTanggalMulaiAdmin');
-    const filterTanggalAkhirAdmin = document.getElementById('filterTanggalAkhirAdmin');
-    const resetFilterButtonAdmin = document.getElementById('resetFilterButtonAdmin');
+    async function fetchAndParse(url, options = {}) { let response; try { response = await fetch(url, options); const responseClone = response.clone(); try { const result = await response.json(); return { ok: response.ok, result }; } catch (e) { const text = await responseClone.text(); throw new Error(`Format respons tidak valid. Server: ${text.substring(0,150)}...`); } } catch (e) { throw new Error(`Tidak dapat terhubung ke server: ${e.message}`); } }
+    function formatRupiah(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0); }
+    function formatWaktu(dateTimeString) { if (!dateTimeString) return '-'; try { const date = new Date(dateTimeString); if (isNaN(date.getTime())) return dateTimeString; const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }; return date.toLocaleString('id-ID', options); } catch (e) { return dateTimeString; } }
 
-    const transaksi = [
-        {
-            id: 'TRX004', waktu: '2024-10-27 11:30:15', atas_nama: 'Budi S.', tipe: 'Makan di Sini', kasir: 'Budi Kasir',
-            items: [
-                { nama: 'Nasi Goreng Spesial', jumlah: 1, harga: 28000 },
-                { nama: 'Es Teh Manis', jumlah: 1, harga: 8000 }
-            ], total: 36000
-        },
-        {
-            id: 'TRX003', waktu: '2024-10-27 10:15:05', atas_nama: 'Citra', tipe: 'Bawa Pulang', kasir: 'Citra',
-            items: [
-                { nama: 'Soto Ayam Lamongan', jumlah: 2, harga: 22000 }
-            ], total: 44000
-        },
-         {
-            id: 'TRX002', waktu: '2024-10-26 19:45:50', atas_nama: 'Dewi', tipe: 'Makan di Sini', kasir: 'Budi Kasir',
-            items: [
-                { nama: 'Sate Ayam Madura', jumlah: 1, harga: 30000 },
-                { nama: 'Kopi Hitam', jumlah: 1, harga: 10000 }
-            ], total: 40000
-        },
-         {
-            id: 'TRX001', waktu: '2024-10-26 12:05:22', atas_nama: 'Eko', tipe: 'Bawa Pulang', kasir: 'Citra',
-            items: [
-                { nama: 'Gado-Gado Siram', jumlah: 1, harga: 20000 },
-                { nama: 'Pisang Goreng Crispy', jumlah: 1, harga: 15000 },
-                { nama: 'Es Cendol Durian', jumlah: 1, harga: 25000 }
-            ], total: 60000
-        }
-    ];
-
-    function formatRupiahAdmin(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka); }
-    function formatWaktuLaporan(dateTimeString) {
-        if (!dateTimeString) return '-';
-        try { const date = new Date(dateTimeString); if (isNaN(date.getTime())) return dateTimeString;
-            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            return date.toLocaleString('id-ID', options);
-        } catch (e) { return dateTimeString; }
-    }
-
-    function displayLaporanAdmin(transactions) {
-        if (!laporanTableBodyAdmin) return;
-        laporanTableBodyAdmin.innerHTML = '';
-        if (noLaporanMessageAdmin) noLaporanMessageAdmin.style.display = 'none';
-        if (!transactions || transactions.length === 0) {
-            if (noLaporanMessageAdmin) noLaporanMessageAdmin.style.display = 'block';
-            if (tableLaporanContainerAdmin) tableLaporanContainerAdmin.style.display = 'none';
-            return;
-        }
-        if (tableLaporanContainerAdmin) tableLaporanContainerAdmin.style.display = '';
+    function displayData(transactions) {
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+        if (noDataMessage) noDataMessage.style.display = 'none';
+        if (tableContainer) tableContainer.style.display = 'none';
+        if (!transactions || transactions.length === 0) { if (noDataMessage) noDataMessage.style.display = 'block'; return; }
+        if (tableContainer) tableContainer.style.display = '';
 
         transactions.forEach((trx, index) => {
-            const row = laporanTableBodyAdmin.insertRow();
             let itemsHtml = '<ul class="list-unstyled mb-0 small">';
-            if(trx.items && trx.items.length > 0) {
-                trx.items.forEach(item => {
-                    itemsHtml += `<li>${item.nama} x ${item.jumlah}</li>`;
-                });
-            } else { itemsHtml += '<li>- Tidak ada item -</li>'; }
+            if(trx.items && trx.items.length > 0) { trx.items.forEach(item => { itemsHtml += `<li>${item.nama_produk || 'N/A'} x ${item.jumlah}</li>`; }); }
+            else { itemsHtml += '<li>-</li>'; }
             itemsHtml += '</ul>';
 
+            const row = tableBody.insertRow();
             row.innerHTML = `
-                <td class="text-center align-middle">${index + 1}</td>
-                <td class="align-middle text-nowrap">${formatWaktuLaporan(trx.waktu)}</td>
-                <td class="align-middle">${trx.atas_nama || '-'}</td>
-                <td class="align-middle">${trx.tipe || '-'}</td>
-                <td class="align-middle">${trx.kasir || '-'}</td>
+                <td class="text-center align-middle">${trx.id}</td>
+                <td class="align-middle text-nowrap">${formatWaktu(trx.waktu)}</td>
+                <td class="align-middle">${trx.nama_pemesan || '-'}</td>
+                <td class="align-middle">${trx.tipe_pesanan || '-'}</td>
+                <td class="align-middle">${trx.nama_kasir || '-'}</td>
                 <td class="align-middle">${itemsHtml}</td>
-                <td class="text-right align-middle font-weight-bold">${formatRupiahAdmin(trx.total)}</td>
+                <td class="text-right align-middle font-weight-bold">${formatRupiah(trx.total_harga)}</td>
                 <td class="text-center align-middle">
-                    <button class="btn btn-sm btn-info btn-detail-trx" data-id="${trx.id}" title="Lihat Detail"><i class="fas fa-eye fa-fw"></i></button>
+                    <button class="btn btn-sm btn-info" title="Cetak Struk" disabled><i class="fas fa-print fa-fw"></i></button>
                 </td>
             `;
         });
     }
 
-    function loadAndDisplayLaporan() {
-        if (loadingLaporanAdmin) loadingLaporanAdmin.style.display = 'block';
-        if (tableLaporanContainerAdmin) tableLaporanContainerAdmin.style.display = 'none';
-        if (noLaporanMessageAdmin) noLaporanMessageAdmin.style.display = 'none';
-        if (laporanTableBodyAdmin) laporanTableBodyAdmin.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>`;
+    async function loadData() {
+        if(tableBody) tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>';
+        if (noDataMessage) noDataMessage.style.display = 'none';
 
-        const startDate = filterTanggalMulaiAdmin ? filterTanggalMulaiAdmin.value : null;
-        const endDate = filterTanggalAkhirAdmin ? filterTanggalAkhirAdmin.value : null;
+        const params = new URLSearchParams();
+        if (startDateInput && startDateInput.value) params.append('start_date', startDateInput.value);
+        if (endDateInput && endDateInput.value) params.append('end_date', endDateInput.value);
+        const queryString = params.toString();
+        const apiUrl = `${API_URL}${queryString ? '?' + queryString : ''}`;
 
-        setTimeout(() => {
-            let filteredTransactions = [...transaksi];
-
-            if (startDate) {
-                filteredTransactions = filteredTransactions.filter(trx => {
-                    const trxDate = trx.waktu.split(' ')[0]; // Ambil YYYY-MM-DD
-                    return trxDate >= startDate;
-                });
-            }
-            if (endDate) {
-                filteredTransactions = filteredTransactions.filter(trx => {
-                    const trxDate = trx.waktu.split(' ')[0];
-                    return trxDate <= endDate;
-                });
-            }
-
-            displayLaporanAdmin(filteredTransactions);
-            if(loadingLaporanAdmin) loadingLaporanAdmin.style.display = 'none';
-
-            // Inisialisasi DataTables setelah data dimuat (jika library disertakan)
-            if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#dataTableLaporan')) {
-                 $('#dataTableLaporan').DataTable({
-                     "order": [[ 1, "desc" ]], // Urutkan berdasarkan waktu terbaru dulu
-                     "language": { // Contoh opsi bahasa Indonesia
-                         "search": "Cari:",
-                         "lengthMenu": "Tampilkan _MENU_ data per halaman",
-                         "zeroRecords": "Data tidak ditemukan",
-                         "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
-                         "infoEmpty": "Tidak ada data tersedia",
-                         "infoFiltered": "(difilter dari _MAX_ total data)",
-                         "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Berikutnya", "previous": "Sebelumnya" }
-                     }
-                 });
-            } else if ($.fn.DataTable) {
-                // Jika sudah ada, mungkin perlu redraw atau clear/add data jika filter
-                 $('#dataTableLaporan').DataTable().clear().rows.add(filteredTransactions).draw(); // Cara redraw jika pakai data array
-            }
-
-        }, 300); // Simulasi loading
+        try {
+            const { ok, result } = await fetchAndParse(apiUrl);
+            if (!ok || !result.success) throw new Error(result.message || 'Gagal memuat laporan.');
+            displayData(result.data || []);
+        } catch (error) {
+            if(tableBody) tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Gagal memuat: ${error.message}</td></tr>`;
+        }
     }
-
-    if(filterLaporanFormAdmin) {
-        filterLaporanFormAdmin.addEventListener('submit', (e) => {
-            e.preventDefault();
-             // Hancurkan DataTable lama sebelum memuat data baru jika pakai DataTables
-             if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dataTableLaporan')) {
-                  $('#dataTableLaporan').DataTable().destroy();
-                  // Kosongkan tbody secara manual setelah destroy
-                  if(laporanTableBodyAdmin) laporanTableBodyAdmin.innerHTML = '';
-             }
-            loadAndDisplayLaporan();
-        });
-    }
-    if (resetFilterButtonAdmin) {
-        resetFilterButtonAdmin.addEventListener('click', () => {
-             if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dataTableLaporan')) {
-                  $('#dataTableLaporan').DataTable().destroy();
-                  if(laporanTableBodyAdmin) laporanTableBodyAdmin.innerHTML = '';
-             }
-            if(filterTanggalMulaiAdmin) filterTanggalMulaiAdmin.value = '';
-            if(filterTanggalAkhirAdmin) filterTanggalAkhirAdmin.value = '';
-            loadAndDisplayLaporan();
-        });
-    }
-
-    loadAndDisplayLaporan(); // Muat data awal
+    
+    if(filterForm) { filterForm.addEventListener('submit', (e) => { e.preventDefault(); loadData(); }); }
+    if (resetBtn) { resetBtn.addEventListener('click', () => { if(startDateInput) startDateInput.value = ''; if(endDateInput) endDateInput.value = ''; loadData(); }); }
+    loadData();
 });
